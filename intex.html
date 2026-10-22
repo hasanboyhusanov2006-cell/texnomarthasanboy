@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Texno Market - Zamonaviy Elektr va Smart Texnika Jihozlari</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js (3D Graphics) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        tech: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        neonCyan: '#00f3ff',
+                        neonPurple: '#8a2be2',
+                        neonPink: '#ff007f',
+                        neonGold: '#ffcc00',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #080c15;
+            color: #ffffff;
+            overflow-x: hidden;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Glassmorphism Styling */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px) rotateX(3deg) rotateY(-2deg);
+            border-color: rgba(0, 243, 255, 0.5);
+            box-shadow: 0 25px 50px rgba(0, 243, 255, 0.25);
+        }
+
+        /* 3D Dynamic Glow Buttons */
+        .btn-3d {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            color: #fff;
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+        }
+
+        .btn-3d::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.7), rgba(255,255,255,0));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+
+        .btn-3d:hover {
+            transform: translateY(-5px) scale(1.03);
+        }
+
+        .btn-3d:active {
+            transform: translateY(2px) scale(0.98);
+        }
+
+        /* Unique Button Variants */
+        .btn-korxona {
+            background: linear-gradient(135deg, #00f3ff, #0055ff);
+            box-shadow: 0 10px 25px rgba(0, 243, 255, 0.4);
+        }
+        .btn-korxona:hover {
+            box-shadow: 0 15px 35px rgba(0, 243, 255, 0.7);
+        }
+
+        .btn-buyurtma {
+            background: linear-gradient(135deg, #ff007f, #ff5e00);
+            box-shadow: 0 10px 25px rgba(255, 0, 127, 0.4);
+        }
+        .btn-buyurtma:hover {
+            box-shadow: 0 15px 35px rgba(255, 0, 127, 0.7);
+        }
+
+        .btn-video {
+            background: linear-gradient(135deg, #8a2be2, #4a00e0);
+            box-shadow: 0 10px 25px rgba(138, 43, 226, 0.4);
+        }
+        .btn-video:hover {
+            box-shadow: 0 15px 35px rgba(138, 43, 226, 0.7);
+        }
+
+        .btn-admin {
+            background: linear-gradient(135deg, #ffcc00, #ff8800);
+            box-shadow: 0 10px 25px rgba(255, 204, 0, 0.4);
+            color: #000;
+        }
+        .btn-admin:hover {
+            box-shadow: 0 15px 35px rgba(255, 204, 0, 0.7);
+        }
+
+        .glow-text-cyan {
+            text-shadow: 0 0 18px rgba(0, 243, 255, 0.7);
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between relative overflow-x-hidden">
+
+    <!-- Interactive Background 3D Particles Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Header / Navigatsiya Bar -->
+    <header class="w-full py-5 px-6 md:px-12 flex justify-between items-center glass-card border-b border-white/10 sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-400 via-purple-600 to-pink-500 flex items-center justify-center text-xl font-bold shadow-lg shadow-cyan-500/50">
+                <i class="fa-solid fa-bolt text-white"></i>
+            </div>
+            <span class="font-tech text-2xl font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-neonCyan via-neonPink to-neonGold glow-text-cyan">
+                TEXNO<span class="text-white">MARKET</span>
+            </span>
+        </div>
+
+        <nav class="hidden md:flex gap-8 font-semibold text-sm tracking-wide">
+            <a href="#home" class="hover:text-neonCyan transition">Bosh sahifa</a>
+            <a href="#about-market" class="hover:text-neonCyan transition">Bozorimiz Haqida</a>
+            <a href="#links" class="hover:text-neonCyan transition">Xizmatlar</a>
+            <a href="#products" class="hover:text-neonCyan transition">Katalog</a>
+            <a href="#contact" class="hover:text-neonCyan transition">Bog'lanish</a>
+        </nav>
+
+        <div>
+            <button onclick="openAdminModal()" class="px-4 py-2.5 text-xs font-tech bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition flex items-center gap-2 font-bold">
+                <i class="fa-solid fa-shield-halved text-yellow-400"></i> Admin Panel
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="container mx-auto px-6 py-12 md:py-20 flex flex-col md:flex-row items-center justify-between gap-12">
+        <div class="md:w-1/2 space-y-6 text-center md:text-left">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-neonCyan text-xs font-semibold tracking-wider uppercase mb-2">
+                <i class="fa-solid fa-store"></i> Texno Market — Smart Elektr Jihozlari Markazi
+            </div>
+            <h1 class="font-tech text-4xl sm:text-5xl lg:text-6xl font-black leading-tight">
+                Aqlli Uy va Zamonaviy <span class="bg-clip-text text-transparent bg-gradient-to-r from-neonCyan via-neonPink to-neonGold glow-text-cyan">Elektr Texnikalari</span>
+            </h1>
+            <p class="text-gray-300 text-base md:text-lg leading-relaxed max-w-xl">
+                "Texno Market" do'konida eng so'nggi modeldagi xavfsiz, sifatli hamda yuqori energiya tejamkorligiga ega elektr va elektronika uskunalarini topasiz.
+            </p>
+            
+            <!-- Quick Link Buttons -->
+            <div class="pt-4 flex flex-wrap gap-4 justify-center md:justify-start">
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSfJCg9LR_ja6Ke6IaFxGfMOhYiOAjE2qw_bCTTG03LWh996ew/viewform?usp=sharing&ouid=112477080928062015636r" target="_blank" class="btn-3d btn-buyurtma text-xs sm:text-sm">
+                    <i class="fa-solid fa-cart-shopping mr-2"></i> Buyurtma berish
+                </a>
+                <a href="https://docs.google.com/document/d/1uYFvM1TjRNF5OwOH5b76zmf8MwEV08clcr6poMqr2KA/edit?usp=sharing" target="_blank" class="btn-3d btn-korxona text-xs sm:text-sm">
+                    <i class="fa-solid fa-building mr-2"></i> Korxona
+                </a>
+            </div>
+        </div>
+
+        <!-- 3D Texno Market Interactive Core View -->
+        <div class="md:w-1/2 w-full h-[360px] sm:h-[440px] glass-card rounded-3xl relative overflow-hidden flex items-center justify-center">
+            <div id="hero-3d-container" class="w-full h-full cursor-grab"></div>
+            <div class="absolute bottom-4 left-4 right-4 bg-black/50 backdrop-blur-md p-3 rounded-2xl border border-white/10 text-center text-xs text-gray-300 pointer-events-none">
+                <i class="fa-solid fa-cube text-cyan-400 mr-1.5"></i> Texno Market 3D Yadrosini sichqoncha bilan aylantiring!
+            </div>
+        </div>
+    </section>
+
+    <!-- Market Highlights -->
+    <section id="about-market" class="container mx-auto px-6 py-10">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="glass-card p-6 rounded-2xl flex items-center gap-4">
+                <div class="w-14 h-14 rounded-xl bg-cyan-500/20 text-neonCyan flex items-center justify-center text-2xl shrink-0">
+                    <i class="fa-solid fa-shield-cat"></i>
+                </div>
+                <div>
+                    <h4 class="font-tech text-base font-bold">100% Rasmiy Kafolat</h4>
+                    <p class="text-xs text-gray-400 mt-1">Barcha Texno Market mahsulotlariga uzoq muddatli kafolat taqdim etiladi.</p>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-2xl flex items-center gap-4">
+                <div class="w-14 h-14 rounded-xl bg-pink-500/20 text-neonPink flex items-center justify-center text-2xl shrink-0">
+                    <i class="fa-solid fa-truck-fast"></i>
+                </div>
+                <div>
+                    <h4 class="font-tech text-base font-bold">Tezkor Yetkazib Berish</h4>
+                    <p class="text-xs text-gray-400 mt-1">Buyurtmalaringiz butun hudud bo'ylab tez va xavfsiz yetkaziladi.</p>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-2xl flex items-center gap-4">
+                <div class="w-14 h-14 rounded-xl bg-amber-500/20 text-neonGold flex items-center justify-center text-2xl shrink-0">
+                    <i class="fa-solid fa-microchip"></i>
+                </div>
+                <div>
+                    <h4 class="font-tech text-base font-bold">A + Energy Efficiency</h4>
+                    <p class="text-xs text-gray-400 mt-1">Maksimal darajada elektr energiyasini tejamkor uskuna va tizimlar.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3D Interactive Buttons Section -->
+    <section id="links" class="container mx-auto px-6 py-16">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+            <h2 class="font-tech text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-neonCyan to-neonPink">
+                Texno Market Xizmatlar Markazi
+            </h2>
+            <p class="text-gray-400 text-sm md:text-base">
+                Quyidagi interaktiv 3D tugmalar orqali kerakli bo'lim va hujjatlarga tezda kiring:
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            
+            <!-- Button 1: Korxona -->
+            <div class="glass-card p-6 rounded-3xl flex flex-col items-center text-center justify-between group">
+                <div class="w-16 h-16 rounded-2xl bg-cyan-500/20 text-neonCyan flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-building-shield"></i>
+                </div>
+                <h3 class="font-tech text-lg font-bold mb-2">Korxona Haqida</h3>
+                <p class="text-xs text-gray-400 mb-6">Texno Market korxonasining rasmiy ma'lumotlari va faoliyat hujjati.</p>
+                <a href="https://docs.google.com/document/d/1uYFvM1TjRNF5OwOH5b76zmf8MwEV08clcr6poMqr2KA/edit?usp=sharing" target="_blank" class="btn-3d btn-korxona w-full text-xs">
+                    <i class="fa-solid fa-file-lines mr-2"></i> Korxona
+                </a>
+            </div>
+
+            <!-- Button 2: Buyurtma berish -->
+            <div class="glass-card p-6 rounded-3xl flex flex-col items-center text-center justify-between group">
+                <div class="w-16 h-16 rounded-2xl bg-pink-500/20 text-neonPink flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </div>
+                <h3 class="font-tech text-lg font-bold mb-2">Online Buyurtma</h3>
+                <p class="text-xs text-gray-400 mb-6">Texno Market do'konidan istalgan jihozga ariza va buyurtma berish.</p>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSfJCg9LR_ja6Ke6IaFxGfMOhYiOAjE2qw_bCTTG03LWh996ew/viewform?usp=sharing&ouid=112477080928062015636r" target="_blank" class="btn-3d btn-buyurtma w-full text-xs">
+                    <i class="fa-solid fa-cart-arrow-down mr-2"></i> Buyurtma Berish
+                </a>
+            </div>
+
+            <!-- Button 3: Video lavha -->
+            <div class="glass-card p-6 rounded-3xl flex flex-col items-center text-center justify-between group">
+                <div class="w-16 h-16 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-circle-play"></i>
+                </div>
+                <h3 class="font-tech text-lg font-bold mb-2">Video Lavha</h3>
+                <p class="text-xs text-gray-400 mb-6">Elektr jihozlarining ishlash jarayoni va maxsus video sharhlari.</p>
+                <a href="https://docs.google.com/videos/d/1Kg-CQk3BqTW-29ud0O0YNCbnRdQUCLJFRf-svDbLYAs/play?usp=sharing" target="_blank" class="btn-3d btn-video w-full text-xs">
+                    <i class="fa-solid fa-play mr-2"></i> Video Lavha
+                </a>
+            </div>
+
+            <!-- Button 4: Buyurtma jadvali (Admin protected) -->
+            <div class="glass-card p-6 rounded-3xl flex flex-col items-center text-center justify-between group border-amber-500/30">
+                <div class="w-16 h-16 rounded-2xl bg-amber-500/20 text-neonGold flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition relative">
+                    <i class="fa-solid fa-table-list"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-lock"></i></span>
+                </div>
+                <h3 class="font-tech text-lg font-bold mb-2 text-yellow-300">Buyurtma Jadvali</h3>
+                <p class="text-xs text-gray-400 mb-6">Texno Market admin xodimlari uchun (Parol: 123456).</p>
+                <button onclick="openAdminModal()" class="btn-3d btn-admin w-full text-xs">
+                    <i class="fa-solid fa-shield-halved mr-2"></i> Buyurtma Jadvali
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Product Showcase Section -->
+    <section id="products" class="container mx-auto px-6 py-16">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-12">
+            <div>
+                <span class="text-neonCyan font-tech text-xs uppercase tracking-widest">Katalog</span>
+                <h2 class="font-tech text-3xl md:text-4xl font-bold mt-1">Texno Market Maxsus Mahsulotlari</h2>
+            </div>
+            <p class="text-gray-400 text-sm max-w-md mt-2 md:mt-0">Yuqori sifat, zamonaviy ko'rinish va energiya tejamkorligi.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Product Item 1 -->
+            <div class="glass-card rounded-3xl overflow-hidden p-5 flex flex-col justify-between">
+                <div>
+                    <div class="h-48 rounded-2xl bg-gradient-to-br from-cyan-900/40 to-black/60 flex items-center justify-center mb-4 relative overflow-hidden group">
+                        <i class="fa-solid fa-robot text-7xl text-cyan-400 group-hover:scale-125 transition duration-500"></i>
+                        <span class="absolute top-3 left-3 bg-neonCyan/20 text-neonCyan border border-neonCyan/30 text-[10px] font-bold px-2 py-1 rounded-lg">TEXNO SMART</span>
+                    </div>
+                    <h3 class="font-tech text-lg font-bold">Smart Uyni Boshqarish Paneli</h3>
+                    <p class="text-xs text-gray-400 mt-2">Texno Market'dan aqlli uylardagi barcha elektr jihozlarini avtomatik boshqaruvchi markaziy kontroller.</p>
+                </div>
+                <div class="mt-6 flex justify-between items-center">
+                    <span class="text-xl font-bold text-neonCyan">1,250,000 UZS</span>
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfJCg9LR_ja6Ke6IaFxGfMOhYiOAjE2qw_bCTTG03LWh996ew/viewform?usp=sharing&ouid=112477080928062015636r" target="_blank" class="px-4 py-2 bg-white/10 hover:bg-neonCyan hover:text-black rounded-xl text-xs font-semibold transition">
+                        Buyurtma
+                    </a>
+                </div>
+            </div>
+
+            <!-- Product Item 2 -->
+            <div class="glass-card rounded-3xl overflow-hidden p-5 flex flex-col justify-between">
+                <div>
+                    <div class="h-48 rounded-2xl bg-gradient-to-br from-purple-900/40 to-black/60 flex items-center justify-center mb-4 relative overflow-hidden group">
+                        <i class="fa-solid fa-solar-panel text-7xl text-purple-400 group-hover:scale-125 transition duration-500"></i>
+                        <span class="absolute top-3 left-3 bg-purple-500/20 text-purple-300 border border-purple-400/30 text-[10px] font-bold px-2 py-1 rounded-lg">TEXNO EKO</span>
+                    </div>
+                    <h3 class="font-tech text-lg font-bold">Quyosh Energiyasi Invertori 5kW</h3>
+                    <p class="text-xs text-gray-400 mt-2">Texno Market maxsus invertorlari to'liq avtomatlashtirilgan bo'lib, elektr uzilishida darhol ishga tushadi.</p>
+                </div>
+                <div class="mt-6 flex justify-between items-center">
+                    <span class="text-xl font-bold text-purple-400">4,800,000 UZS</span>
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfJCg9LR_ja6Ke6IaFxGfMOhYiOAjE2qw_bCTTG03LWh996ew/viewform?usp=sharing&ouid=112477080928062015636r" target="_blank" class="px-4 py-2 bg-white/10 hover:bg-purple-500 hover:text-white rounded-xl text-xs font-semibold transition">
+                        Buyurtma
+                    </a>
+                </div>
+            </div>
+
+            <!-- Product Item 3 -->
+            <div class="glass-card rounded-3xl overflow-hidden p-5 flex flex-col justify-between">
+                <div>
+                    <div class="h-48 rounded-2xl bg-gradient-to-br from-pink-900/40 to-black/60 flex items-center justify-center mb-4 relative overflow-hidden group">
+                        <i class="fa-solid fa-plug-circle-bolt text-7xl text-pink-400 group-hover:scale-125 transition duration-500"></i>
+                        <span class="absolute top-3 left-3 bg-pink-500/20 text-pink-300 border border-pink-400/30 text-[10px] font-bold px-2 py-1 rounded-lg">XAVFSIZLIK</span>
+                    </div>
+                    <h3 class="font-tech text-lg font-bold">Aqlli Kuchlanish Himoyalagichi</h3>
+                    <p class="text-xs text-gray-400 mt-2">Texno Market aqlli rozetkalari qisqa tutashuv va ortiqcha tok kelganda jihozlarni zahiraga oladi.</p>
+                </div>
+                <div class="mt-6 flex justify-between items-center">
+                    <span class="text-xl font-bold text-pink-400">280,000 UZS</span>
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfJCg9LR_ja6Ke6IaFxGfMOhYiOAjE2qw_bCTTG03LWh996ew/viewform?usp=sharing&ouid=112477080928062015636r" target="_blank" class="px-4 py-2 bg-white/10 hover:bg-pink-500 hover:text-white rounded-xl text-xs font-semibold transition">
+                        Buyurtma
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Admin Password Verification Modal -->
+    <div id="adminModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-50 p-4 transition-opacity duration-300">
+        <div class="glass-card p-8 rounded-3xl max-w-md w-full border border-yellow-500/30 relative">
+            <button onclick="closeAdminModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto bg-amber-500/20 text-yellow-400 rounded-full flex items-center justify-center text-2xl mb-3 shadow-lg shadow-yellow-500/20">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h3 class="font-tech text-2xl font-bold text-yellow-400">Texno Market Admin</h3>
+                <p class="text-xs text-gray-300 mt-1">Buyurtmalar jadvaliga kirish uchun parolni kiriting (Maxfiy parol: 123456).</p>
+            </div>
+
+            <form onsubmit="verifyAdminPassword(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-2">ADMIN PAROLI</label>
+                    <input type="password" id="adminPasswordInput" placeholder="******" class="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-center text-lg tracking-widest text-white focus:outline-none focus:border-yellow-400 transition">
+                </div>
+
+                <div id="passwordError" class="text-red-400 text-xs text-center hidden font-semibold">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> Noto'g'ri parol! Qayta urinib ko'ring.
+                </div>
+
+                <button type="submit" class="btn-3d btn-admin w-full text-sm font-bold py-3 mt-2">
+                    JADVALNI OCHISH
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="contact" class="glass-card border-t border-white/10 py-8 px-6 md:px-12 mt-20">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
+            <div>
+                <div class="font-tech text-xl font-bold text-neonCyan mb-1">TEXNO MARKET</div>
+                <p class="text-xs text-gray-400">© 2026 Texno Market. Zamonaviy Elektr va Smart Texnika Tizimlari.</p>
+            </div>
+            <div class="flex gap-4 text-lg text-gray-300">
+                <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-neonCyan hover:text-black transition"><i class="fa-brands fa-telegram"></i></a>
+                <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-neonPink hover:text-white transition"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-purple-500 hover:text-white transition"><i class="fa-brands fa-youtube"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Three.js 3D Animations Script -->
+    <script>
+        // --- 1. Background Particle Field Animation ---
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgScene = new THREE.Scene();
+        const bgCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const bgRenderer = new THREE.WebGLRenderer({ canvas: bgCanvas, alpha: true, antialias: true });
+
+        bgRenderer.setSize(window.innerWidth, window.innerHeight);
+        bgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const particlesCount = 750;
+        const posArray = new Float32Array(particlesCount * 3);
+        const colorArray = new Float32Array(particlesCount * 3);
+
+        const colors = [
+            new THREE.Color('#00f3ff'),
+            new THREE.Color('#ff007f'),
+            new THREE.Color('#8a2be2'),
+            new THREE.Color('#ffcc00')
+        ];
+
+        for (let i = 0; i < particlesCount * 3; i += 3) {
+            posArray[i] = (Math.random() - 0.5) * 16;
+            posArray[i + 1] = (Math.random() - 0.5) * 16;
+            posArray[i + 2] = (Math.random() - 0.5) * 16;
+
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            colorArray[i] = randomColor.r;
+            colorArray[i + 1] = randomColor.g;
+            colorArray[i + 2] = randomColor.b;
+        }
+
+        const particlesGeometry = new THREE.BufferGeometry();
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.045,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.85
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        bgScene.add(particlesMesh);
+
+        bgCamera.position.z = 5;
+
+        // --- 2. Hero Interactive 3D Core Object ---
+        const heroContainer = document.getElementById('hero-3d-container');
+        const heroScene = new THREE.Scene();
+        const heroCamera = new THREE.PerspectiveCamera(45, heroContainer.clientWidth / heroContainer.clientHeight, 0.1, 1000);
+        const heroRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+
+        heroRenderer.setSize(heroContainer.clientWidth, heroContainer.clientHeight);
+        heroRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        heroContainer.appendChild(heroRenderer.domElement);
+
+        const techGroup = new THREE.Group();
+
+        // Inner core sphere
+        const sphereGeo = new THREE.IcosahedronGeometry(1.25, 2);
+        const sphereMat = new THREE.MeshStandardMaterial({
+            color: 0x00f3ff,
+            wireframe: true,
+            emissive: 0x00a8ff,
+            emissiveIntensity: 0.85
+        });
+        const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+        techGroup.add(sphere);
+
+        // Outer Rings
+        const ringGeo1 = new THREE.TorusGeometry(2, 0.05, 16, 100);
+        const ringMat1 = new THREE.MeshStandardMaterial({ color: 0xff007f, metalness: 0.8, roughness: 0.2 });
+        const ring1 = new THREE.Mesh(ringGeo1, ringMat1);
+        techGroup.add(ring1);
+
+        const ringGeo2 = new THREE.TorusGeometry(2.4, 0.04, 16, 100);
+        const ringMat2 = new THREE.MeshStandardMaterial({ color: 0xffcc00, metalness: 0.9, roughness: 0.1 });
+        const ring2 = new THREE.Mesh(ringGeo2, ringMat2);
+        ring2.rotation.x = Math.PI / 3;
+        techGroup.add(ring2);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+        heroScene.add(ambientLight);
+
+        const pointLight = new THREE.PointLight(0x00f3ff, 2.5, 10);
+        pointLight.position.set(2, 3, 4);
+        heroScene.add(pointLight);
+
+        heroCamera.position.z = 6;
+
+        // Mouse Drag Controls
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
+        const onMouseDown = (e) => {
+            isDragging = true;
+            previousMousePosition = { x: e.clientX || e.touches[0].clientX, y: e.clientY || e.touches[0].clientY };
+        };
+
+        const onMouseMove = (e) => {
+            if (!isDragging) return;
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            
+            const deltaMove = {
+                x: clientX - previousMousePosition.x,
+                y: clientY - previousMousePosition.y
+            };
+
+            techGroup.rotation.y += deltaMove.x * 0.01;
+            techGroup.rotation.x += deltaMove.y * 0.01;
+
+            previousMousePosition = { x: clientX, y: clientY };
+        };
+
+        const onMouseUp = () => { isDragging = false; };
+
+        heroContainer.addEventListener('mousedown', onMouseDown);
+        heroContainer.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+
+        heroContainer.addEventListener('touchstart', onMouseDown);
+        heroContainer.addEventListener('touchmove', onMouseMove);
+        window.addEventListener('touchend', onMouseUp);
+
+        heroScene.add(techGroup);
+
+        // --- 3. Animation Loop ---
+        let clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const elapsedTime = clock.getElapsedTime();
+
+            particlesMesh.rotation.y = elapsedTime * 0.03;
+            particlesMesh.rotation.x = elapsedTime * 0.015;
+
+            if (!isDragging) {
+                techGroup.rotation.y += 0.008;
+                techGroup.rotation.x += 0.004;
+            }
+
+            ring1.rotation.z = elapsedTime * 0.5;
+            ring2.rotation.y = -elapsedTime * 0.4;
+
+            bgRenderer.render(bgScene, bgCamera);
+            heroRenderer.render(heroScene, heroCamera);
+        }
+
+        // --- 4. Window Resize Handler ---
+        window.addEventListener('resize', () => {
+            bgCamera.aspect = window.innerWidth / window.innerHeight;
+            bgCamera.updateProjectionMatrix();
+            bgRenderer.setSize(window.innerWidth, window.innerHeight);
+
+            heroCamera.aspect = heroContainer.clientWidth / heroContainer.clientHeight;
+            heroCamera.updateProjectionMatrix();
+            heroRenderer.setSize(heroContainer.clientWidth, heroContainer.clientHeight);
+        });
+
+        window.onload = function () {
+            animate();
+        };
+
+        // --- 5. Admin Password Verification Logic ---
+        const ADMIN_PASSWORD = "123456";
+        const ORDER_SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1Y_cifT1UM5FVfwCd0nSqi82f6xmdLspiY4aZxWbGujs/edit?usp=sharing";
+
+        function openAdminModal() {
+            document.getElementById('adminModal').classList.remove('hidden');
+            document.getElementById('adminModal').classList.add('flex');
+            document.getElementById('adminPasswordInput').focus();
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('hidden');
+            document.getElementById('adminModal').classList.remove('flex');
+            document.getElementById('passwordError').classList.add('hidden');
+            document.getElementById('adminPasswordInput').value = '';
+        }
+
+        function verifyAdminPassword(event) {
+            event.preventDefault();
+            const inputPass = document.getElementById('adminPasswordInput').value;
+            const errorMsg = document.getElementById('passwordError');
+
+            if (inputPass === ADMIN_PASSWORD) {
+                errorMsg.classList.add('hidden');
+                window.open(ORDER_SPREADSHEET_URL, '_blank');
+                closeAdminModal();
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
